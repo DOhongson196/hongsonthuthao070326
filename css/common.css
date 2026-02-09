@@ -1,48 +1,29 @@
-@font-face {
-    font-family: 'Proxima Nova';
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
 
-@font-face {
-    font-family: 'Proxima Nova';
-    src: url('../assets/fonts/ProximaNova-Semibold.woff2') format('woff2');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-}
-
-/* Bold weight mapping — ensure bold file is used for 700 */
-@font-face {
-    font-family: 'Proxima Nova';
-    src: url('../assets/fonts/Proxima-Nova-Bold.woff') format('woff');
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
 
 html {
-    scroll-behavior: smooth !important;
-    width: 100vw !important;
+  scroll-behavior: smooth !important;
+  width: 100vw !important;
 }
 
 body {
-    font-family: 'Proxima Nova', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    padding: 0 !important;
-    width: 100% !important;
-    overflow-x: hidden !important;
+  font-family: 'Cormorant Garamond', serif !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
 }
 
 /* Improve diacritic rendering on some browsers */
-body, input, button, textarea {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+body,
+input,
+button,
+textarea {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 i {
-    width: auto !important;
+  width: auto !important;
 }
 
 body,
@@ -50,102 +31,138 @@ div,
 nav,
 svg,
 section {
-    will-change: background-color;
-    transition: background-color 350ms ease;
+  will-change: background-color;
+  transition: background-color 350ms ease;
 }
 
-svg>path {
-    will-change: color;
-    transition: color 350ms ease;
+svg > path {
+  will-change: color;
+  transition: color 350ms ease;
 }
 
 html[data-bs-theme="dark"] .navbar {
-    background-color: rgba(var(--bs-dark-rgb), 0.75) !important;
-    backdrop-filter: blur(0.5rem);
+  background-color: rgba(var(--bs-dark-rgb), 0.75) !important;
+  backdrop-filter: blur(0.5rem);
 }
 
 html[data-bs-theme="light"] .navbar {
-    background-color: rgba(var(--bs-light-rgb), 0.75) !important;
-    backdrop-filter: blur(0.5rem);
+  background-color: rgba(var(--bs-light-rgb), 0.75) !important;
+  backdrop-filter: blur(0.5rem);
 }
 
 html[data-bs-theme="dark"] .text-theme-auto {
-    color: rgb(var(--bs-light-rgb));
+  color: rgb(var(--bs-light-rgb));
 }
 
 html[data-bs-theme="light"] .text-theme-auto {
-    color: rgb(var(--bs-dark-rgb));
+  color: rgb(var(--bs-dark-rgb));
 }
 
 html[data-bs-theme="dark"] .nav-link {
-    color: rgba(var(--bs-white-rgb), 0.5);
+  color: rgba(var(--bs-white-rgb), 0.5);
 }
 
 html[data-bs-theme="light"] .nav-link {
-    color: rgba(var(--bs-black-rgb), 0.5);
+  color: rgba(var(--bs-black-rgb), 0.5);
 }
 
 html[data-bs-theme="dark"] .bg-theme-auto {
-    background-color: var(--bs-gray-800);
+  background-color: var(--bs-gray-800);
 }
 
 html[data-bs-theme="light"] .bg-theme-auto {
-    background-color: var(--bs-gray-100);
+  background-color: var(--bs-gray-100);
 }
 
 html[data-bs-theme="dark"] .btn-outline-auto {
-    --bs-btn-color: var(--bs-light);
-    --bs-btn-border-color: var(--bs-light);
-    --bs-btn-hover-color: var(--bs-black);
-    --bs-btn-hover-bg: var(--bs-light);
-    --bs-btn-hover-border-color: var(--bs-light);
-    --bs-btn-focus-shadow-rgb: var(--bs-light-rgb);
-    --bs-btn-active-color: var(--bs-black);
-    --bs-btn-active-bg: var(--bs-light);
-    --bs-btn-active-border-color: var(--bs-light);
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --bs-btn-disabled-color: var(--bs-light);
-    --bs-btn-disabled-bg: transparent;
-    --bs-btn-disabled-border-color: var(--bs-light);
-    --bs-gradient: none;
+  --bs-btn-color: var(--bs-light);
+  --bs-btn-border-color: var(--bs-light);
+  --bs-btn-hover-color: var(--bs-black);
+  --bs-btn-hover-bg: var(--bs-light);
+  --bs-btn-hover-border-color: var(--bs-light);
+  --bs-btn-focus-shadow-rgb: var(--bs-light-rgb);
+  --bs-btn-active-color: var(--bs-black);
+  --bs-btn-active-bg: var(--bs-light);
+  --bs-btn-active-border-color: var(--bs-light);
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: var(--bs-light);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--bs-light);
+  --bs-gradient: none;
 }
 
 html[data-bs-theme="light"] .btn-outline-auto {
-    --bs-btn-color: var(--bs-dark);
-    --bs-btn-border-color: var(--bs-dark);
-    --bs-btn-hover-color: var(--bs-white);
-    --bs-btn-hover-bg: var(--bs-dark);
-    --bs-btn-hover-border-color: var(--bs-dark);
-    --bs-btn-focus-shadow-rgb: var(--bs-dark-rgb);
-    --bs-btn-active-color: var(--bs-white);
-    --bs-btn-active-bg: var(--bs-dark);
-    --bs-btn-active-border-color: var(--bs-dark);
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --bs-btn-disabled-color: var(--bs-dark);
-    --bs-btn-disabled-bg: transparent;
-    --bs-btn-disabled-border-color: var(--bs-dark);
-    --bs-gradient: none;
+  --bs-btn-color: var(--bs-dark);
+  --bs-btn-border-color: var(--bs-dark);
+  --bs-btn-hover-color: var(--bs-white);
+  --bs-btn-hover-bg: var(--bs-dark);
+  --bs-btn-hover-border-color: var(--bs-dark);
+  --bs-btn-focus-shadow-rgb: var(--bs-dark-rgb);
+  --bs-btn-active-color: var(--bs-white);
+  --bs-btn-active-bg: var(--bs-dark);
+  --bs-btn-active-border-color: var(--bs-dark);
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: var(--bs-dark);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--bs-dark);
+  --bs-gradient: none;
 }
 
 html[data-bs-theme="dark"] .bg-overlay-auto {
-    background-color: rgba(var(--bs-black-rgb), 0.5);
-    backdrop-filter: blur(0.25rem);
+  background-color: rgba(var(--bs-black-rgb), 0.5);
+  backdrop-filter: blur(0.25rem);
 }
 
 html[data-bs-theme="light"] .bg-overlay-auto {
-    background-color: rgba(var(--bs-white-rgb), 0.5);
-    backdrop-filter: blur(0.25rem);
+  background-color: rgba(var(--bs-white-rgb), 0.5);
+  backdrop-filter: blur(0.25rem);
 }
 
 .hover-area {
-    display: none;
-    cursor: pointer;
+  display: none;
+  cursor: pointer;
 }
 
 .hover-wrapper:hover .hover-area {
-    display: flex;
+  display: flex;
 }
 
 .gif-image {
-    max-height: 10rem;
+  max-height: 10rem;
 }
+
+.bride-img,
+.groom-img {
+  width: 140px;
+  height: 250px;
+  object-fit: cover;
+}
+
+@media (max-width: 576px) {
+  .bride-img,
+  .groom-img {
+    width: 120px;
+    height: 200px;
+  }
+
+  .font-esthetic {
+    font-size: 1.6rem;
+  }
+}
+
+.font-light-thin {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.font-thank-you {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: rgba(0, 0, 0, 0.7);
+}
+

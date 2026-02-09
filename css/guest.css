@@ -19,6 +19,12 @@ html {
     font-family: 'Proxima Nova', serif !important;
 }
 
+.font-light-thin {
+    font-family: 'Proxima Nova', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-weight: 400 !important;
+}
+
+
 .img-center-crop {
     width: 13rem;
     height: 13rem;
