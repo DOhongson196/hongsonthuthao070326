@@ -10,7 +10,7 @@ import { lang } from '../../common/language.js';
 import { storage } from '../../common/storage.js';
 import { session } from '../../common/session.js';
 import { offline } from '../../common/offline.js';
-import { comment } from '../components/comment.js';
+// comments removed (no backend)
 import * as confetti from '../../libs/confetti.js';
 import { pool } from '../../connection/request.js';
 
@@ -252,14 +252,21 @@ export const guest = (() => {
          */
         const formatDate = (d) => (new Date(d.replace(' ', 'T') + ':00Z')).toISOString().replace(/[-:]/g, '').split('.').shift();
 
+        // derive event date from body data-time (date part)
+        const eventDateRaw = document.body.getAttribute('data-time') || '2026-03-07 10:00:00';
+        const eventDate = eventDateRaw.split(' ')[0]; // YYYY-MM-DD
+
+        const start = `${eventDate} 10:30`;
+        const end = `${eventDate} 13:00`;
+
         const url = new URL('https://calendar.google.com/calendar/render');
         const data = new URLSearchParams({
             action: 'TEMPLATE',
-            text: 'The Wedding of Wahyu and Riski',
-            dates: `${formatDate('2023-03-15 10:00')}/${formatDate('2023-03-15 11:00')}`,
-            details: 'Tanpa mengurangi rasa hormat, kami mengundang Anda untuk berkenan menghadiri acara pernikahan kami. Terima kasih atas perhatian dan doa restu Anda, yang menjadi kebahagiaan serta kehormatan besar bagi kami.',
-            location: 'RT 10 RW 02, Desa Pajerukan, Kec. Kalibagor, Kab. Banyumas, Jawa Tengah 53191.',
-            ctz: config.get('tz'),
+            text: 'Đám cưới Hồng Sơn & Thu Thảo',
+            dates: `${formatDate(start)}/${formatDate(end)}`,
+            details: 'Kính mời quý khách tới dự lễ thành hôn của chúng tôi. Xin cảm ơn sự quan tâm và lời chúc phúc của quý vị.',
+            location: 'Phòng King 1 + 2 tầng 2 TRỐNG ĐỒNG CẢNH HỒ 173B TRƯỜNG CHINH, PHƯỜNG PHƯƠNG LIÊT, TP. HÀ NỘI',
+            ctz: 'Asia/Ho_Chi_Minh',
         });
 
         url.search = data.toString();
@@ -319,7 +326,6 @@ export const guest = (() => {
     const pageLoaded = () => {
         lang.init();
         offline.init();
-        comment.init();
         progress.init();
 
         config = storage('config');
@@ -340,19 +346,15 @@ export const guest = (() => {
         });
 
         if (!token || token.length <= 0) {
-            document.getElementById('comment')?.remove();
-            document.querySelector('a.nav-link[href="#comment"]')?.closest('li.nav-item')?.remove();
-
+            // comment section removed; load main assets
             vid.load();
             img.load();
-            aud.load();
+            aud.load(false);
             lib.load({ confetti: document.body.getAttribute('data-confetti') === 'true' });
         }
 
         if (token && token.length > 0) {
-            // add 2 progress for config and comment.
-            // before img.load();
-            progress.add();
+            // add progress for config
             progress.add();
 
             // if don't have data-src.
@@ -369,12 +371,8 @@ export const guest = (() => {
                 }
 
                 vid.load();
-                aud.load();
+                aud.load(false);
                 lib.load({ confetti: data.is_confetti_animation });
-
-                comment.show()
-                    .then(() => progress.complete('comment'))
-                    .catch(() => progress.invalid('comment'));
 
             }).catch(() => progress.invalid('config'));
         }
@@ -392,7 +390,6 @@ export const guest = (() => {
             storage('owns').clear();
             storage('likes').clear();
             storage('session').clear();
-            storage('comment').clear();
         }
 
         window.addEventListener('load', () => {
@@ -408,7 +405,6 @@ export const guest = (() => {
         return {
             util,
             theme,
-            comment,
             guest: {
                 open,
                 modal,

@@ -1,13 +1,44 @@
+@font-face {
+    font-family: 'Proxima Nova';
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Proxima Nova';
+    src: url('../assets/fonts/ProximaNova-Semibold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Bold weight mapping — ensure bold file is used for 700 */
+@font-face {
+    font-family: 'Proxima Nova';
+    src: url('../assets/fonts/Proxima-Nova-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 html {
     scroll-behavior: smooth !important;
     width: 100vw !important;
 }
 
 body {
-    font-family: 'Josefin Sans', sans-serif !important;
+    font-family: 'Proxima Nova', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     padding: 0 !important;
     width: 100% !important;
     overflow-x: hidden !important;
+}
+
+/* Improve diacritic rendering on some browsers */
+body, input, button, textarea {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 i {
