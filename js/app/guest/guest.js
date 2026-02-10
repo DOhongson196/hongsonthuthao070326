@@ -22,11 +22,6 @@ export const guest = (() => {
     let information = null;
 
     /**
-     * @type {ReturnType<typeof storage>|null}
-     */
-    let config = null;
-
-    /**
      * @returns {void}
      */
     const countDownDate = () => {
@@ -328,8 +323,6 @@ export const guest = (() => {
         offline.init();
         progress.init();
         rsvp.init();
-
-        config = storage('config');
         information = storage('information');
 
         const vid = video.init();
@@ -408,7 +401,6 @@ export const guest = (() => {
                 'video',
                 'audio',
                 'libs',
-                'gif',
             ]);
         });
 

@@ -22,7 +22,7 @@ export const progress = (() => {
      * ======================= */
 
     const updateUI = (type = '') => {
-        if (!info || !bar || total === 0) return;
+        if (!info || !bar || total === 0) {return;}
 
         const percent = Math.min(
             Math.round((loaded / total) * 100),
@@ -82,7 +82,7 @@ export const progress = (() => {
      * Register a loading task
      */
     const add = () => {
-        if (!valid) return;
+        if (!valid) {return;}
         total += 1;
         updateUI();
     };
@@ -93,7 +93,7 @@ export const progress = (() => {
      * @param {boolean} skip
      */
     const complete = (type, skip = false) => {
-        if (!valid) return;
+        if (!valid) {return;}
 
         loaded += 1;
         updateUI(skip ? `${type} skipped` : `${type} complete`);
@@ -108,12 +108,12 @@ export const progress = (() => {
      * @param {string} type
      */
     const invalid = (type) => {
-        if (!valid) return;
+        if (!valid) {return;}
 
         valid = false;
 
-        if (bar) bar.style.backgroundColor = 'red';
-        if (info) info.innerText = `Error loading ${type}`;
+        if (bar) {bar.style.backgroundColor = 'red';}
+        if (info) {info.innerText = `Error loading ${type}`;}
 
         document.dispatchEvent(new Event('undangan.progress.invalid'));
     };
