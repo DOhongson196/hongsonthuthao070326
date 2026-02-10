@@ -32,10 +32,11 @@ export const audio = (() => {
             audioEl.controls = false;
 
             progress.complete('audio');
-        } catch {
-            progress.invalid('audio');
-            return;
-        }
+} catch (err) {
+    console.warn('[audio] load failed:', err);
+    progress.complete('audio', true); // ✅ SKIP, KHÔNG invalid
+    return;
+}
 
         let isPlay = false;
         const music = document.getElementById('button-music');

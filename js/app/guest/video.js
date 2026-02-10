@@ -11,7 +11,9 @@ export const video = (() => {
     const load = () => {
         const wrap = document.getElementById('video-love-stroy');
 
-        // không có video
+        // =======================
+        // NO VIDEO → SKIP
+        // =======================
         if (!wrap || !wrap.dataset.src) {
             wrap?.remove();
             progress.complete('video', true);
@@ -20,10 +22,19 @@ export const video = (() => {
 
         const src = wrap.dataset.src;
 
-        /* =======================
-         * CREATE VIDEO ELEMENT
-         * ======================= */
+        // =======================
+        // SAFE PROGRESS FLAG
+        // =======================
+        let done = false;
+        const safeComplete = (skip = false) => {
+            if (done) return;
+            done = true;
+            progress.complete('video', skip);
+        };
 
+        // =======================
+        // CREATE VIDEO ELEMENT
+        // =======================
         const vid = document.createElement('video');
         vid.className = wrap.dataset.vidClass || '';
         vid.loop = true;
@@ -37,10 +48,9 @@ export const video = (() => {
         vid.disablePictureInPicture = true;
         vid.controlsList = 'noremoteplayback nodownload noplaybackrate';
 
-        /* =======================
-         * AUTO PLAY / PAUSE
-         * ======================= */
-
+        // =======================
+        // AUTO PLAY / PAUSE
+        // =======================
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((e) => {
                 if (e.isIntersecting) {
@@ -51,32 +61,38 @@ export const video = (() => {
             });
         });
 
-        /* =======================
-         * FETCH METADATA ONLY
-         * ======================= */
+        // =======================
+        // VIDEO ERROR → SKIP SAFELY
+        // =======================
+        vid.addEventListener('error', (e) => {
+            console.warn('[video] element error', e);
+            observer.disconnect();
+            wrap?.remove();
+            safeComplete(true);
+        });
 
+        // =======================
+        // FETCH METADATA ONLY
+        // =======================
         return request(HTTP_GET, src)
             .withNoBody()
-            .default({ Range: 'bytes=0-1' }) // chỉ kiểm tra + trigger metadata
+            .default({ Range: 'bytes=0-1' }) // trigger metadata
             .then(() => {
                 const metadataLoaded = new Promise((res) =>
                     vid.addEventListener('loadedmetadata', res, { once: true })
                 );
 
-                vid.addEventListener('error', () => progress.invalid('video'));
-
-                // STREAM TRỰC TIẾP
+                // stream trực tiếp
                 vid.src = util.escapeHtml(src);
                 wrap.appendChild(vid);
 
                 return metadataLoaded;
             })
             .then(() => {
-                /* =======================
-                 * VIDEO READY → COMPLETE PROGRESS
-                 * ======================= */
-
-                progress.complete('video');
+                // =======================
+                // METADATA READY
+                // =======================
+                safeComplete(false);
 
                 // Fix layout shift
                 const width = vid.getBoundingClientRect().width;
@@ -86,23 +102,33 @@ export const video = (() => {
                     wrap.style.height = `${height}px`;
                 }
 
-                observer.observe(vid);
+                // chỉ observe nếu còn trong DOM
+                if (wrap?.isConnected) {
+                    observer.observe(vid);
+                }
 
                 document
                     .getElementById('video-love-stroy-loading')
                     ?.remove();
             })
-            .catch(() => {
-                progress.invalid('video');
+            .catch((err) => {
+                console.warn('[video] metadata check failed', err);
+
+                // fallback: gắn trực tiếp
+                try {
+                    vid.src = util.escapeHtml(src);
+                    wrap.appendChild(vid);
+                } catch {}
+
+                safeComplete(true);
             });
     };
 
-    /* =======================
-     * INIT
-     * ======================= */
-
+    // =======================
+    // INIT
+    // =======================
     const init = () => {
-        // chỉ +1 progress (chờ metadata)
+        // chỉ +1 progress cho video
         progress.add();
 
         return {

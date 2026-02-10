@@ -375,7 +375,16 @@ export const guest = (() => {
                 aud.load(false);
                 lib.load({ confetti: data.is_confetti_animation });
 
-            }).catch(() => progress.invalid('config'));
+            }).catch(() => {
+    console.warn('[guest] session failed, fallback to public mode');
+    progress.complete('config', true); // skip
+     
+    // fallback: load public assets
+    vid.load();
+    img.load();
+    aud.load(false);
+    lib.load({ confetti: false });
+});
         }
     };
 

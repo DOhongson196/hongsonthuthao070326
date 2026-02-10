@@ -52,10 +52,11 @@ export const image = (() => {
         urlCache.push({
             url: el.getAttribute('data-src'),
             res: (url) => appendImage(el, url),
-            rej: (err) => {
-                console.error(err);
-                progress.invalid('image');
-            },
+rej: (err) => {
+    console.warn('[image fetch failed]', el.getAttribute('data-src'), err);
+    el.classList.remove('opacity-0'); // cho hiện khung
+    progress.complete('image', true); // ✅ SKIP
+},
         });
     };
 
@@ -64,7 +65,11 @@ export const image = (() => {
      * @returns {void}
      */
     const getByDefault = (el) => {
-        el.onerror = () => progress.invalid('image');
+el.onerror = () => {
+    console.warn('[image load failed]', el.src);
+    el.classList.remove('opacity-0');
+    progress.complete('image', true); // ✅
+};
         el.onload = () => {
             el.width = el.naturalWidth;
             el.height = el.naturalHeight;
@@ -74,8 +79,8 @@ export const image = (() => {
         if (el.complete && el.naturalWidth !== 0 && el.naturalHeight !== 0) {
             progress.complete('image');
         } else if (el.complete) {
-            progress.invalid('image');
-        }
+    progress.complete('image', true); // ✅ KHÔNG invalid
+}
     };
 
     /**
