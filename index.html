@@ -160,6 +160,10 @@
       crossorigin="anonymous"
     ></script>
     <script src="./dist/guest.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  emailjs.init("mxbDoIov26XswtSJW");
+</script>
   </head>
 
   <!-- Jika tidak menggunakan komentar, hapus atribut data-key dan data-url, serta abaikan file dashboard.html. -->
@@ -901,6 +905,38 @@
               ></path>
             </svg>
           </div>
+
+              <section id="rsvp" class="py-4">
+      <div class="container text-center">
+        <h2 class="mb-3">XÁC NHẬN THAM DỰ</h2>
+
+        <form id="rsvp-form" style="max-width: 420px" class="mx-auto">
+          <input
+            id="rsvp-name"
+            class="form-control mb-3"
+            placeholder="Họ và tên *"
+            required
+          />
+
+          <div class="mb-3 text-start">
+            <label class="form-check">
+              <input type="radio" name="rsvp" value="Có tham dự" required />
+              Có, tôi sẽ tham dự
+            </label>
+            <label class="form-check">
+              <input type="radio" name="rsvp" value="Không tham dự" />
+              Xin phép không tham dự
+            </label>
+          </div>
+
+          <button class="btn btn-outline-auto w-100">
+            Gửi xác nhận
+          </button>
+
+          <div id="rsvp-status" class="small mt-2 d-none"></div>
+        </form>
+      </div>
+    </section>
 
           <!-- End Of Invitation -->
           <section class="bg-white-black py-2 no-gap-bottom">

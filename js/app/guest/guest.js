@@ -10,7 +10,7 @@ import { lang } from '../../common/language.js';
 import { storage } from '../../common/storage.js';
 import { session } from '../../common/session.js';
 import { offline } from '../../common/offline.js';
-// comments removed (no backend)
+import { rsvp } from '../../common/rsvp.js';
 import * as confetti from '../../libs/confetti.js';
 import { pool } from '../../connection/request.js';
 
@@ -327,6 +327,7 @@ export const guest = (() => {
         lang.init();
         offline.init();
         progress.init();
+        rsvp.init();
 
         config = storage('config');
         information = storage('information');
