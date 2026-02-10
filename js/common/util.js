@@ -88,8 +88,23 @@ export const util = (() => {
      * @param {number} step
      * @returns {Promise<HTMLElement>}
      */
-    const changeOpacity = (el, isUp, step = 0.05) => new Promise((res) => {
+const changeOpacity = (el, isUp, step = 0.05) =>
+    new Promise((resolve) => {
+
+        // ✅ luôn resolve – không chặn app
+        if (!el) {
+            resolve(null);
+            return;
+        }
+
         let op = parseFloat(el.style.opacity);
+
+        // ✅ fix NaN (opacity chưa set)
+        if (Number.isNaN(op)) {
+            op = isUp ? 0 : 1;
+            el.style.opacity = op.toString();
+        }
+
         const target = isUp ? 1 : 0;
 
         const animate = () => {
@@ -99,10 +114,11 @@ export const util = (() => {
 
             if ((isUp && op >= target) || (!isUp && op <= target)) {
                 el.style.opacity = target.toString();
-                res(el);
-            } else {
-                requestAnimationFrame(animate);
+                resolve(el); // ✅ luôn resolve el
+                return;
             }
+
+            requestAnimationFrame(animate);
         };
 
         requestAnimationFrame(animate);

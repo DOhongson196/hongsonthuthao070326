@@ -1,94 +1,133 @@
 export const progress = (() => {
 
-    /**
-     * @type {HTMLElement|null}
-     */
+    /* =======================
+     * STATE (SINGLETON)
+     * ======================= */
+
+    /** @type {HTMLElement|null} */
     let info = null;
 
-    /**
-     * @type {HTMLElement|null}
-     */
+    /** @type {HTMLElement|null} */
     let bar = null;
 
     let total = 0;
     let loaded = 0;
-    let valid = true;
+    let valid = false; // ❗ chỉ true sau init
 
-    /**
-     * @type {Promise<void>|null}
-     */
+    /** @type {Promise<void>|null} */
     let cancelProgress = null;
 
-    /**
-     * @returns {void}
-     */
-    const add = () => {
-        total += 1;
+    /* =======================
+     * INTERNAL HELPERS
+     * ======================= */
+
+    const updateUI = (type = '') => {
+        if (!info || !bar || total === 0) return;
+
+        const percent = Math.min(
+            Math.round((loaded / total) * 100),
+            100
+        );
+
+        info.innerText = type
+            ? `Loading ${type} (${loaded}/${total}) [${percent}%]`
+            : `Loading (${loaded}/${total}) [${percent}%]`;
+
+        bar.style.width = percent + '%';
     };
 
-    /**
-     * @returns {string}
-     */
-const showInformation = () => {
-    if (total === 0) return '';
-    const percent = Math.round((loaded / total) * 100);
-    return `(${loaded}/${total}) [${percent}%]`;
-};
+    const finish = () => {
+        valid = false;
+        cancelProgress = null;
+        document.dispatchEvent(new Event('undangan.progress.done'));
+    };
+
+    /* =======================
+     * PUBLIC API
+     * ======================= */
 
     /**
-     * @param {string} type
-     * @param {boolean} [skip=false]
-     * @returns {void}
+     * Init progress (MUST be called first)
      */
-    const complete = (type, skip = false) => {
-        if (!valid) {
+    const init = () => {
+        // 🔁 RESET ALL STATE
+        total = 0;
+        loaded = 0;
+        valid = true;
+
+        info = document.getElementById('progress-info');
+        bar = document.getElementById('progress-bar');
+
+        if (!info || !bar) {
+            console.warn('[progress] missing DOM elements');
+            valid = false;
             return;
         }
 
-        loaded += 1;
-        info.innerText = `Loading ${type} ${skip ? 'skipped' : 'complete'} ${showInformation()}`;
-        bar.style.width = Math.min((loaded / total) * 100, 100).toString() + '%';
+        info.classList.remove('d-none');
+        info.innerText = 'Loading...';
+        bar.style.width = '0%';
+        bar.style.backgroundColor = '';
 
-        if (loaded === total) {
-            valid = false;
-            cancelProgress = null;
-            document.dispatchEvent(new Event('undangan.progress.done'));
+        cancelProgress = new Promise((res) =>
+            document.addEventListener(
+                'undangan.progress.invalid',
+                res,
+                { once: true }
+            )
+        );
+    };
+
+    /**
+     * Register a loading task
+     */
+    const add = () => {
+        if (!valid) return;
+        total += 1;
+        updateUI();
+    };
+
+    /**
+     * Mark a task as completed
+     * @param {string} type
+     * @param {boolean} skip
+     */
+    const complete = (type, skip = false) => {
+        if (!valid) return;
+
+        loaded += 1;
+        updateUI(skip ? `${type} skipped` : `${type} complete`);
+
+        if (loaded >= total) {
+            finish();
         }
     };
 
     /**
+     * Mark progress as failed
      * @param {string} type
-     * @returns {void}
      */
     const invalid = (type) => {
-        if (valid) {
-            valid = false;
-            bar.style.backgroundColor = 'red';
-            info.innerText = `Error loading ${type} ${showInformation()}`;
-            document.dispatchEvent(new Event('undangan.progress.invalid'));
-        }
+        if (!valid) return;
+
+        valid = false;
+
+        if (bar) bar.style.backgroundColor = 'red';
+        if (info) info.innerText = `Error loading ${type}`;
+
+        document.dispatchEvent(new Event('undangan.progress.invalid'));
     };
 
     /**
-     * @returns {Promise<void>|null}
+     * Abort signal for requests
      */
     const getAbort = () => cancelProgress;
-
-    /**
-     * @returns {void}
-     */
-    const init = () => {
-        info = document.getElementById('progress-info');
-        bar = document.getElementById('progress-bar');
-        info.classList.remove('d-none');
-        cancelProgress = new Promise((res) => document.addEventListener('undangan.progress.invalid', res));
-    };
 
     return {
         init,
         add,
-        invalid,
         complete,
+        invalid,
         getAbort,
     };
 })();
