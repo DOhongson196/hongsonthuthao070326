@@ -2,150 +2,175 @@ import { request, cacheWrapper, HTTP_GET } from './request.js';
 
 export const cache = (cacheName) => {
 
-    /**
-     * @type {Map<string, string>}
-     */
+    /* =======================
+     * INTERNAL STATE
+     * ======================= */
+
+    /** @type {Map<string, string>} */
     const objectUrls = new Map();
 
-    /**
-     * @type {Map<string, Promise<string>>}
-     */
-    const inFlightRequests = new Map();
+    /** @type {Map<string, Promise<string>>} */
+    const inFlight = new Map();
 
-    /**
-     * @type {ReturnType<typeof cacheWrapper>}
-     */
     const cw = cacheWrapper(cacheName);
 
     let ttl = 1000 * 60 * 60 * 6;
-
     let forceCache = false;
 
-    /**
-     * @param {string|URL} input 
-     * @param {Response} res 
-     * @returns {Promise<Response>}
-     */
-    const set = (input, res) => {
-        if (!res.ok) {
-            throw new Error(res.statusText);
-        }
+    /* =======================
+     * HELPERS
+     * ======================= */
 
+    const isVideo = (url) =>
+        /\.(mp4|webm|ogg|mov|m4v)$/i.test(url);
+
+    const isCacheable = (url) =>
+        !isVideo(url);
+
+    const revoke = (url) => {
+        if (objectUrls.has(url)) {
+            URL.revokeObjectURL(objectUrls.get(url));
+            objectUrls.delete(url);
+        }
+    };
+
+    /* =======================
+     * CACHE STORAGE
+     * ======================= */
+
+    const set = (input, res) => {
+        if (!res.ok) throw new Error(res.statusText);
         return cw.set(input, res, forceCache, ttl);
     };
 
-    /**
-     * @param {string|URL} input 
-     * @returns {Promise<Response|null>}
-     */
     const has = (input) => cw.has(input);
 
-    /**
-     * @param {string|URL} input 
-     * @returns {Promise<boolean>}
-     */
-    const del = (input) => cw.del(input);
+    const del = (input) => {
+        revoke(input);
+        return cw.del(input);
+    };
+
+    /* =======================
+     * GET (MAIN API)
+     * ======================= */
 
     /**
      * @param {string} input
-     * @param {Promise<void>|null} [cancel=null]
+     * @param {Promise<void>|null} cancel
      * @returns {Promise<string>}
      */
     const get = (input, cancel = null) => {
+
+        // 🚀 VIDEO → STREAM TRỰC TIẾP
+        if (isVideo(input)) {
+            return Promise.resolve(input);
+        }
+
+        // đã có objectURL
         if (objectUrls.has(input)) {
             return Promise.resolve(objectUrls.get(input));
         }
 
-        if (inFlightRequests.has(input)) {
-            return inFlightRequests.get(input);
+        // đang fetch
+        if (inFlight.has(input)) {
+            return inFlight.get(input);
         }
 
-        /**
-         * @returns {Promise<Response>}
-         */
-        const fetchPut = () => request(HTTP_GET, input).withCancel(cancel).withRetry().default();
+        const fetchAndCache = () =>
+            request(HTTP_GET, input)
+                .withCancel(cancel)
+                .withRetry()
+                .default()
+                .then((res) => set(input, res));
 
-        const inflightPromise = has(input)
-            .then((res) => res ? Promise.resolve(res) : del(input).then(fetchPut).then((r) => set(input, r)))
-            .then((r) => r.blob())
-            .then((b) => objectUrls.set(input, URL.createObjectURL(b)))
-            .then(() => objectUrls.get(input))
-            .finally(() => inFlightRequests.delete(input));
+        const promise = has(input)
+            .then((res) => res ?? fetchAndCache())
+            .then((res) => res.blob())
+            .then((blob) => {
+                const url = URL.createObjectURL(blob);
+                objectUrls.set(input, url);
+                return url;
+            })
+            .finally(() => inFlight.delete(input));
 
-        inFlightRequests.set(input, inflightPromise);
-        return inflightPromise;
+        inFlight.set(input, promise);
+        return promise;
     };
 
+    /* =======================
+     * BATCH PRELOAD
+     * ======================= */
+
     /**
-     * @param {object[]} items
+     * @param {{url:string,res?:Function,rej?:Function}[]} items
      * @param {Promise<void>|null} cancel
-     * @returns {Promise<void>}
      */
     const run = (items, cancel = null) => {
+        if (!items?.length) return Promise.resolve();
+
         const uniq = new Map();
 
-        if (items.length === 0) {
-            return Promise.resolve();
-        }
-
-        items.filter((val) => val !== null).forEach((val) => {
-            const exist = uniq.get(val.url) ?? [];
-            uniq.set(val.url, [...exist, [val.res, val?.rej]]);
+        items.filter(Boolean).forEach(({ url, res, rej }) => {
+            const list = uniq.get(url) ?? [];
+            list.push([res, rej]);
+            uniq.set(url, list);
         });
 
-        return Promise.allSettled(Array.from(uniq).map(([k, v]) => get(k, cancel)
-            .then((s) => {
-                v.forEach((cb) => cb[0]?.(s));
-                return s;
-            })
-            .catch((r) => {
-                v.forEach((cb) => cb[1]?.(r));
-                return r;
-            })
-        ));
+        return Promise.allSettled(
+            [...uniq.entries()].map(([url, cbs]) =>
+                get(url, cancel)
+                    .then((r) => {
+                        cbs.forEach(([ok]) => ok?.(r));
+                        return r;
+                    })
+                    .catch((e) => {
+                        cbs.forEach(([, err]) => err?.(e));
+                        throw e;
+                    })
+            )
+        );
     };
 
-    /**
-     * @param {string} input
-     * @param {string} name
-     * @returns {Promise<Response>}
-     */
-    const download = async (input, name) => {
-        const reverse = new Map(Array.from(objectUrls.entries()).map(([k, v]) => [v, k]));
+    /* =======================
+     * DOWNLOAD
+     * ======================= */
 
-        if (!reverse.has(input)) {
-            try {
-                const checkUrl = new URL(input);
-                if (!checkUrl.protocol.includes('blob')) {
-                    throw new Error('Is not blob');
-                }
-            } catch {
-                input = await get(input);
-            }
+    const download = async (input, filename) => {
+        if (!input.startsWith('blob:')) {
+            input = await get(input);
         }
 
-        return request(HTTP_GET, input).withDownload(name).default();
+        return request(HTTP_GET, input)
+            .withDownload(filename)
+            .default();
     };
 
+    /* =======================
+     * CLEANUP
+     * ======================= */
+
+    window.addEventListener('beforeunload', () => {
+        objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        objectUrls.clear();
+    });
+
+    /* =======================
+     * PUBLIC API
+     * ======================= */
+
     return {
+        get,
         run,
-        del,
         has,
         set,
-        get,
-        open,
+        del,
         download,
-        /**
-         * @param {number} v
-         * @returns {ReturnType<typeof cache>} 
-         */
+
         setTtl(v) {
             ttl = Number(v);
             return this;
         },
-        /**
-         * @returns {ReturnType<typeof cache>} 
-         */
+
         withForceCache() {
             forceCache = true;
             return this;

@@ -29,9 +29,11 @@ export const progress = (() => {
     /**
      * @returns {string}
      */
-    const showInformation = () => {
-        return `(${loaded}/${total}) [${parseInt((loaded / total) * 100).toFixed(0)}%]`;
-    };
+const showInformation = () => {
+    if (total === 0) return '';
+    const percent = Math.round((loaded / total) * 100);
+    return `(${loaded}/${total}) [${percent}%]`;
+};
 
     /**
      * @param {string} type
