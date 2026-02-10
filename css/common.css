@@ -150,21 +150,6 @@ html[data-bs-theme="light"] .bg-overlay-auto {
   }
 }
 
-.font-light-thin {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
-  letter-spacing: 0.15em;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.font-thank-you {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 400;
-  font-style: italic;
-  font-size: 1.15rem;
-  line-height: 1.8;
-  color: rgba(0, 0, 0, 0.7);
-}
 
 .music-animate {
   animation: musicHint 2.4s infinite ease-in-out;
@@ -203,74 +188,4 @@ html[data-bs-theme="light"] .bg-overlay-auto {
 
 .icon-btn i {
   line-height: 1;
-}
-
-/* ===== RSVP SECTION ===== */
-#rsvp {
-  background: linear-gradient(180deg, #fff, #fafafa);
-}
-
-#rsvp h2 {
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-/* Form card */
-#rsvp-form {
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-}
-
-/* Input */
-#rsvp-form input[type="text"],
-#rsvp-form input[type="radio"] {
-  cursor: pointer;
-}
-
-#rsvp-name {
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-size: 15px;
-}
-
-/* Radio group */
-#rsvp-form .form-check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  margin-bottom: 10px;
-  transition: 0.2s ease;
-}
-
-#rsvp-form .form-check:hover {
-  background: #f8f9fa;
-}
-
-#rsvp-form input[type="radio"] {
-  accent-color: #e91e63;
-}
-
-/* Button */
-#rsvp-form button {
-  margin-top: 10px;
-  padding: 12px;
-  border-radius: 999px;
-  font-weight: 500;
-  transition: all 0.25s ease;
-}
-
-#rsvp-form button:hover {
-  background-color: #e91e63;
-  color: #fff;
-  border-color: #e91e63;
-}
-
-/* Status text */
-#rsvp-status {
-  min-height: 18px;
 }
