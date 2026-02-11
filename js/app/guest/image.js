@@ -3,135 +3,72 @@ import { cache } from '../../connection/cache.js';
 
 export const image = (() => {
 
-    /**
-     * @type {NodeListOf<HTMLImageElement>|null}
-     */
     let images = null;
-
-    /**
-     * @type {ReturnType<typeof cache>|null}
-     */
     let c = null;
+    let skipPreload = false;
 
-    /**
-     * @type {object[]}
-     */
-    const urlCache = [];
+    const loadedImage = (src) =>
+        new Promise((res) => {
+            const i = new Image();
+            const done = () => res(i);
 
-    /**
-     * @param {string} src 
-     * @returns {Promise<HTMLImageElement>}
-     */
-    const loadedImage = (src) => new Promise((res, rej) => {
-        const i = new Image();
-        i.onload = () => res(i);
-        i.onerror = rej;
-        i.src = src;
-    });
+            const t = setTimeout(done, 2500);
 
-    /**
-     * @param {HTMLImageElement} el 
-     * @param {string} src 
-     * @returns {Promise<void>}
-     */
-    const appendImage = (el, src) => loadedImage(src).then((img) => {
-        el.width = img.naturalWidth;
-        el.height = img.naturalHeight;
-        el.classList.remove('opacity-0');
-        el.src = img.src;
-        img.remove();
+            i.onload = () => {
+                clearTimeout(t);
+                done();
+            };
 
-        progress.complete('image');
-    });
+            i.onerror = () => {
+                clearTimeout(t);
+                done();
+            };
 
-    /**
-     * @param {HTMLImageElement} el 
-     * @returns {void}
-     */
-    const getByFetch = (el) => {
-        urlCache.push({
-            url: el.getAttribute('data-src'),
-            res: (url) => appendImage(el, url),
-rej: (err) => {
-    console.warn('[image fetch failed]', el.getAttribute('data-src'), err);
-    el.classList.remove('opacity-0'); // cho hiện khung
-    progress.complete('image', true); // ✅ SKIP
-},
+            i.src = src;
         });
+
+    const appendImage = async (el, src) => {
+        const img = await loadedImage(src);
+        el.src = img.src || src;
+        el.classList.remove('opacity-0');
+        progress.complete('image', true);
     };
 
-    /**
-     * @param {HTMLImageElement} el 
-     * @returns {void}
-     */
-    const getByDefault = (el) => {
-el.onerror = () => {
-    console.warn('[image load failed]', el.src);
-    el.classList.remove('opacity-0');
-    progress.complete('image', true); // ✅
-};
-        el.onload = () => {
-            el.width = el.naturalWidth;
-            el.height = el.naturalHeight;
-            progress.complete('image');
-        };
-
-        if (el.complete && el.naturalWidth !== 0 && el.naturalHeight !== 0) {
-            progress.complete('image');
-        } else if (el.complete) {
-    progress.complete('image', true); // ✅ KHÔNG invalid
-}
-    };
-
-    /**
-     * @returns {boolean}
-     */
-    const hasDataSrc = () => Array.from(images).some((i) => i.hasAttribute('data-src'));
-
-    /**
-     * @returns {Promise<void>}
-     */
     const load = async () => {
         const imgs = Array.from(images);
 
-        /**
-         * @param {function} filter 
-         * @returns {Promise<void>}
-         */
-        const runGroup = async (filter) => {
-            urlCache.length = 0;
-            imgs.filter(filter).forEach((el) => el.hasAttribute('data-src') ? getByFetch(el) : getByDefault(el));
-            await c.run(urlCache, progress.getAbort());
-        };
+        // 🛑 ZALO MODE: không preload, không fetch
+        if (skipPreload) {
+            imgs.forEach((el) => {
+                el.loading = 'lazy';
+                el.classList.remove('opacity-0');
+                progress.complete('image', true);
+            });
+            return;
+        }
 
-        await runGroup((el) => el.hasAttribute('fetchpriority'));
-        await runGroup((el) => !el.hasAttribute('fetchpriority'));
+        imgs.forEach((el) => {
+            progress.add('image');
+
+            if (el.dataset.src) {
+                appendImage(el, el.dataset.src);
+            } else {
+                el.onload = () => progress.complete('image', true);
+                el.onerror = () => progress.complete('image', true);
+
+                if (el.complete) {
+                    progress.complete('image', true);
+                }
+            }
+        });
     };
 
-    /**
-     * @param {string} blobUrl 
-     * @returns {void}
-     */
-    const download = (blobUrl) => {
-        c.download(blobUrl, `${window.location.hostname}_image_${Date.now()}`);
-    };
-
-    /**
-     * @returns {object}
-     */
-    const init = () => {
+    const init = (opt = {}) => {
+        skipPreload = !!opt.skipPreload;
         c = cache('image').withForceCache();
         images = document.querySelectorAll('img');
-        images.forEach(progress.add);
-
-        return {
-            load,
-            download,
-            hasDataSrc,
-        };
+        return { load };
     };
 
-    return {
-        init,
-    };
+    return { init };
 })();
