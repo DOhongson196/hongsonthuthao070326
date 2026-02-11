@@ -5,68 +5,57 @@ export const image = (() => {
 
     let images = null;
     let c = null;
-    let skipPreload = false;
+    const urlCache = [];
 
     const loadedImage = (src) =>
-        new Promise((res) => {
+        new Promise((resolve) => {
             const i = new Image();
-            const done = () => res(i);
+            const done = () => resolve(i);
 
             const t = setTimeout(done, 2500);
-
-            i.onload = () => {
-                clearTimeout(t);
-                done();
-            };
-
-            i.onerror = () => {
-                clearTimeout(t);
-                done();
-            };
-
+            i.onload = () => { clearTimeout(t); done(); };
+            i.onerror = () => { clearTimeout(t); done(); };
             i.src = src;
         });
 
-    const appendImage = async (el, src) => {
-        const img = await loadedImage(src);
-        el.src = img.src || src;
-        el.classList.remove('opacity-0');
-        progress.complete('image', true);
+    const appendImage = (el, src) =>
+        loadedImage(src).then((img) => {
+            el.src = img.src;
+            el.classList.remove('opacity-0');
+            progress.complete('image');
+        });
+
+    const getByFetch = (el) => {
+        urlCache.push({
+            url: el.getAttribute('data-src'),
+            res: (url) => appendImage(el, url),
+            rej: () => progress.complete('image', true),
+        });
+    };
+
+    const getByDefault = (el) => {
+        el.onload = () => progress.complete('image');
+        el.onerror = () => progress.complete('image', true);
+        if (el.complete) progress.complete('image', true);
     };
 
     const load = async () => {
         const imgs = Array.from(images);
-
-        // 🛑 ZALO MODE: không preload, không fetch
-        if (skipPreload) {
-            imgs.forEach((el) => {
-                el.loading = 'lazy';
-                el.classList.remove('opacity-0');
-                progress.complete('image', true);
-            });
-            return;
-        }
-
-        imgs.forEach((el) => {
-            progress.add('image');
-
-            if (el.dataset.src) {
-                appendImage(el, el.dataset.src);
-            } else {
-                el.onload = () => progress.complete('image', true);
-                el.onerror = () => progress.complete('image', true);
-
-                if (el.complete) {
-                    progress.complete('image', true);
-                }
-            }
-        });
+        const run = async (filter) => {
+            urlCache.length = 0;
+            imgs.filter(filter).forEach(el =>
+                el.hasAttribute('data-src') ? getByFetch(el) : getByDefault(el)
+            );
+            await c.run(urlCache, progress.getAbort());
+        };
+        await run(el => el.hasAttribute('fetchpriority'));
+        await run(el => !el.hasAttribute('fetchpriority'));
     };
 
-    const init = (opt = {}) => {
-        skipPreload = !!opt.skipPreload;
+    const init = () => {
         c = cache('image').withForceCache();
         images = document.querySelectorAll('img');
+        images.forEach(progress.add);
         return { load };
     };
 
