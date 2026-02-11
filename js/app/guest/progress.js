@@ -36,11 +36,12 @@ export const progress = (() => {
         bar.style.width = percent + '%';
     };
 
-    const finish = () => {
-        valid = false;
-        cancelProgress = null;
-        document.dispatchEvent(new Event('undangan.progress.done'));
-    };
+const finish = () => {
+    if (!valid) { return; }
+    valid = false;
+    cancelProgress = null;
+    document.dispatchEvent(new Event('undangan.progress.done'));
+};
 
     /* =======================
      * PUBLIC API
@@ -76,6 +77,18 @@ export const progress = (() => {
                 { once: true }
             )
         );
+
+        setTimeout(() => {
+    if (valid && loaded < total) {
+        console.warn(
+            '[progress] force finish after timeout',
+            loaded,
+            '/',
+            total
+        );
+        finish();
+    }
+}, 15000);
     };
 
     /**
