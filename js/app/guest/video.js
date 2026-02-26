@@ -27,7 +27,7 @@ export const video = (() => {
         // =======================
         let done = false;
         const safeComplete = (skip = false) => {
-            if (done) return;
+            if (done) {return;}
             done = true;
             progress.complete('video', skip);
         };
@@ -118,7 +118,7 @@ export const video = (() => {
                 try {
                     vid.src = util.escapeHtml(src);
                     wrap.appendChild(vid);
-                } catch {}
+                } catch { /* empty */ }
 
                 safeComplete(true);
             });
